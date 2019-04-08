@@ -74,6 +74,8 @@ public class ShareMenuModule extends ReactContextBaseJavaModule {
         } else {
           Toast.makeText(mReactContext, "Type is not support", Toast.LENGTH_SHORT).show();
         }
+    } else {
+      successCallback.invoke(false);
     }
   }
 
