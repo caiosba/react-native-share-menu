@@ -1,5 +1,3 @@
-*LOOKING FOR A VOLUNTEER TO MAINTAIN THE IOS VERSION, CURRENTLY UNMAINTAINED*
-
 # react-native-share-menu
 
 Adds the application to the share menu of the device, so it can be launched from other apps and receive data from them (current text or images).
@@ -206,7 +204,7 @@ class Test extends Component {
     var that = this;
     ShareMenu.getSharedText((text :string) => {
       if (text && text.length) {
-        if (text.startsWith('content://media/')) {
+        if (text.startsWith('content://media/') || text.startsWith('file://')) {
           that.setState({ sharedImage: text });
         } else {
           that.setState({ sharedText: text });
