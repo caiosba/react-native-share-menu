@@ -17,6 +17,7 @@
     "name": "Meedan",
     "email": "hello@meedan.com"
   },
+  "homepage": "https://github.com/meedan/react-native-share-menu",
   "license": "MIT",
   "readmeFilename": "README.md"
 }
