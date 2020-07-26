@@ -62,14 +62,11 @@ open class ShareMenu: NSObject {
     
     @objc(getSharedText:)
     func getSharedText(callback: RCTResponseSenderBlock) {
-        guard (ShareMenu.sharedData?.isEmpty == false) else {
-            callback([""])
-            return
-        }
         let sharedData = ShareMenu.sharedData
         
         if let (_, data) = sharedData?.first {
             callback([data as! String])
+            ShareMenu.sharedData = nil
             return
         }
         
