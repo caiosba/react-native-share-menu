@@ -6,7 +6,7 @@ To run the app on iOS:
 
 - Run `cd ios/ && pod install`
 - Run `yarn react-native run-ios`, or
-- Open `example/ios/ExampleApp.xcodeproj` in Xcode and hit the "Run" button
+- Open `example/ios/Test.xcworkspace` in Xcode and hit the "Run" button
 
 To run the app on Android:
 
