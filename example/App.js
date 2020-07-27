@@ -5,7 +5,7 @@
  * @format
  * @flow strict-local
  */
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {StyleSheet, Text, View, Image} from 'react-native';
 import ShareMenu from 'react-native-share-menu';
 
@@ -13,18 +13,28 @@ const App: () => React$Node = () => {
   const [sharedText, setSharedText] = useState('');
   const [sharedImg, setSharedImg] = useState('');
 
-  useEffect(() => {
-    ShareMenu.getSharedText((data: ?string) => {
-      if (!data) {
-        return;
-      }
+  const handleShare = useCallback((data: ?string) => {
+    if (!data) {
+      return;
+    }
 
-      if (data.startsWith('content://') || data.startsWith('file://')) {
-        setSharedImg(data);
-      } else {
-        setSharedText(data);
-      }
-    });
+    if (data.startsWith('content://') || data.startsWith('file://')) {
+      setSharedImg(data);
+    } else {
+      setSharedText(data);
+    }
+  }, []);
+
+  useEffect(() => {
+    ShareMenu.getInitialShare(handleShare);
+  }, []);
+
+  useEffect(() => {
+    const listener = ShareMenu.addNewShareListener(handleShare);
+
+    return () => {
+      listener.remove();
+    };
   }, []);
 
   return (

@@ -10,28 +10,77 @@ let NO_APP_GROUP_ERROR = "Failed to get App Group User Defaults. Did you set up 
 let USER_DEFAULTS_KEY = "ShareMenuUserDefaults"
 let URL_SCHEME_INFO_PLIST_KEY = "AppURLScheme"
 
+// MARK: Events
+
+let NEW_SHARE_EVENT = "NewShareEvent"
+
 @objc(ShareMenu)
-open class ShareMenu: NSObject {
-    
-    private static var sharedData: [String:Any]?
-    
-    private static var _targetUrlScheme: String?
-    private static var targetUrlScheme: String
+class ShareMenu: RCTEventEmitter {
+
+    private(set) static var _shared: ShareMenu?
+    @objc public static var shared: ShareMenu
     {
         get {
-            return ShareMenu._targetUrlScheme!
+            return ShareMenu._shared!
         }
     }
-    
-    @objc static public func requiresMainQueueSetup() -> Bool {
+
+    var sharedData: [String:Any]?
+
+    static var initialShare: (UIApplication, URL, [UIApplication.OpenURLOptionsKey : Any])?
+
+    var hasListeners = false
+
+    var _targetUrlScheme: String?
+    var targetUrlScheme: String
+    {
+        get {
+            return _targetUrlScheme!
+        }
+    }
+
+    public override init() {
+        super.init()
+        ShareMenu._shared = self
+
+        if let (app, url, options) = ShareMenu.initialShare {
+            share(application: app, openUrl: url, options: options)
+        }
+    }
+
+    override static public func requiresMainQueueSetup() -> Bool {
         return true
     }
-    
-    @objc static public func share(
+
+    open override func supportedEvents() -> [String]! {
+        return [NEW_SHARE_EVENT]
+    }
+
+    open override func startObserving() {
+        hasListeners = true
+    }
+
+    open override func stopObserving() {
+        hasListeners = false
+    }
+
+    public static func messageShare(
         application app: UIApplication,
         openUrl url: URL,
         options: [UIApplication.OpenURLOptionsKey : Any]
     ) {
+        guard (ShareMenu._shared != nil) else {
+            initialShare = (app, url, options)
+            return
+        }
+        
+        ShareMenu.shared.share(application: app, openUrl: url, options: options)
+    }
+    
+    func share(
+        application app: UIApplication,
+        openUrl url: URL,
+        options: [UIApplication.OpenURLOptionsKey : Any]) {
         if _targetUrlScheme == nil {
             guard let bundleUrlTypes = Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [NSDictionary] else {
                 print("Error: \(NO_URL_TYPES_ERROR_MESSAGE)")
@@ -45,31 +94,41 @@ open class ShareMenu: NSObject {
                 print("Error \(NO_URL_SCHEMES_ERROR_MESSAGE)")
                 return
             }
-            
+
             _targetUrlScheme = expectedUrlScheme
         }
+
         guard let scheme = url.scheme, scheme == targetUrlScheme else { return }
         guard let bundleId = Bundle.main.bundleIdentifier else { return }
         guard let userDefaults = UserDefaults(suiteName: "group.\(bundleId)") else {
             print("Error: \(NO_APP_GROUP_ERROR)")
             return
         }
-        
+
         if let data = userDefaults.object(forKey: USER_DEFAULTS_KEY) as? [String:Any] {
             sharedData = data
+            dispatchEvent(with: data)
+            userDefaults.removeObject(forKey: USER_DEFAULTS_KEY)
         }
     }
-    
+
     @objc(getSharedText:)
     func getSharedText(callback: RCTResponseSenderBlock) {
-        let sharedData = ShareMenu.sharedData
+        callback([extractShare(from: sharedData)])
+        sharedData = nil
+    }
+    
+    func dispatchEvent(with data: [String:Any]) {
+        guard hasListeners else { return }
         
-        if let (_, data) = sharedData?.first {
-            callback([data as! String])
-            ShareMenu.sharedData = nil
-            return
+        let share = extractShare(from: data)
+        sendEvent(withName: NEW_SHARE_EVENT, body: share)
+    }
+    
+    func extractShare(from data: [String:Any]?) -> String {
+        guard let (_, share) = data?.first else {
+            return ""
         }
-        
-        callback([""])
+        return share as! String
     }
 }

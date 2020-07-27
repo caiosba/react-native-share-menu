@@ -16,7 +16,7 @@
             openURL:(NSURL *)url
             options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
-    [ShareMenu shareWithApplication:app openUrl:url options:options];
+    [ShareMenuMessenger shareWithApplication:app openUrl:url options:options];
     return [RCTLinkingManager application:app openURL:url options:options];
 }
 
