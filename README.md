@@ -4,7 +4,7 @@ Adds the application to the share menu of the device, so it can be launched from
 
 ## Installation
 
-* Install the module
+- Install the module
 
 ```bash
 npm i --save react-native-share-menu
@@ -30,7 +30,7 @@ react-native link
 
 ### Manual Installation
 
-* In `android/settings.gradle`
+- In `android/settings.gradle`
 
 ```gradle
 ...
@@ -38,7 +38,7 @@ include ':react-native-share-menu', ':app'
 project(':react-native-share-menu').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-share-menu/android')
 ```
 
-* In `android/app/build.gradle`
+- In `android/app/build.gradle`
 
 ```gradle
 ...
@@ -48,7 +48,7 @@ dependencies {
 }
 ```
 
-* In `android/app/src/main/AndroidManifest.xml` in the `<activity>` tag:
+- In `android/app/src/main/AndroidManifest.xml` in the `<activity>` tag:
 
 ```xml
 <activity
@@ -64,7 +64,7 @@ dependencies {
 </activity>
 ```
 
-* Register module (in MainApplication.java)
+- Register module (in MainApplication.java)
 
 ```java
 import com.meedan.ShareMenuPackage;  // <--- import
@@ -170,7 +170,7 @@ Finally, in your `AppDelegate.m` add the following:
 
 @implementation AppDelegate
     ...
-    
+
     - (BOOL)application:(UIApplication *)app
             openURL:(NSURL *)url
             options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
@@ -183,34 +183,29 @@ Finally, in your `AppDelegate.m` add the following:
 ## Example
 
 ```javascript
-import React, {
-  AppRegistry,
-  Component,
-  Text,
-  View
-} from 'react-native';
-import ShareMenu from 'react-native-share-menu';
+import React, { AppRegistry, Component, Text, View } from "react-native";
+import ShareMenu from "react-native-share-menu";
 
 class Test extends Component {
   constructor(props) {
-    super(props); 
+    super(props);
     this.state = {
       sharedText: null,
-      sharedImage: null
+      sharedImage: null,
     };
   }
 
   componentWillMount() {
     var that = this;
-    ShareMenu.getSharedText((text :string) => {
+    ShareMenu.getSharedText((text: string) => {
       if (text && text.length) {
-        if (text.startsWith('content://media/') || text.startsWith('file://')) {
+        if (text.startsWith("content://") || text.startsWith("file://")) {
           that.setState({ sharedImage: text });
         } else {
           that.setState({ sharedText: text });
         }
       }
-    })
+    });
   }
 
   render() {
@@ -223,7 +218,7 @@ class Test extends Component {
   }
 }
 
-AppRegistry.registerComponent('Test', () => Test);
+AppRegistry.registerComponent("Test", () => Test);
 ```
 
 Or check the "example" directory for an example application.
