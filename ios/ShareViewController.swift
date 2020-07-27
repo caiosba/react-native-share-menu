@@ -170,7 +170,7 @@ class ShareViewController: SLComposeServiceViewController {
         return
       }
       
-      let fileExtension = "png"
+      let fileExtension = url.pathExtension
       let fileName = UUID().uuidString
       let filePath = groupFileManagerContainer
         .appendingPathComponent("\(fileName).\(fileExtension)")
