@@ -60,6 +60,7 @@ dependencies {
     <category android:name="android.intent.category.DEFAULT" />
     <data android:mimeType="text/plain" />
     <data android:mimeType="image/*" />
+    <!-- Any other mime types you want to support -->
   </intent-filter>
 </activity>
 ```
@@ -187,18 +188,24 @@ import React, { useState, useEffect, useCallback } from "react";
 import { AppRegistry, Text, View, Image } from "react-native";
 import ShareMenu from "react-native-share-menu";
 
-const Test = () => {
-  const [sharedText, setSharedText] = useState(null);
-  const [sharedImage, setSharedImage] = useState(null);
+type SharedItem = {
+  mimeType: string,
+  data: string,
+};
 
-  const handleShare = useCallback((text: string) => {
-    if (text.length) {
-      if (text.startsWith("content://") || text.startsWith("file://")) {
-        setSharedImage(text);
-      } else {
-        setSharedText(text);
-      }
+const Test = () => {
+  const [sharedData, setSharedData] = useState(null);
+  const [sharedMimeType, setSharedMimeType] = useState(null);
+
+  const handleShare = useCallback((item: ?SharedItem) => {
+    if (!item) {
+      return;
     }
+
+    const { mimeType, data } = item;
+
+    setSharedData(data);
+    setSharedMimeType(mimeType);
   }, []);
 
   useEffect(() => {
@@ -213,11 +220,31 @@ const Test = () => {
     };
   }, []);
 
+  if (!sharedMimeType && !sharedData) {
+    // The user hasn't shared anything yet
+    return null;
+  }
+
+  if (sharedMimeType === "text/plain") {
+    // The user shared text
+    return <Text>Shared text: {sharedData}</Text>;
+  }
+
+  if (sharedMimeType.startsWith("image/")) {
+    // The user shared an image
+    return (
+      <View>
+        <Text>Shared image:</Text>
+        <Image source={{ uri: sharedData }} />
+      </View>
+    );
+  }
+
+  // The user shared a file in general
   return (
     <View>
-      <Text>Shared text: {sharedText}</Text>
-      <Text>Shared image:</Text>
-      <Image source={{ uri: sharedImage }} />
+      <Text>Shared mime type: {sharedMimeType}</Text>
+      <Text>Shared file location: {sharedData}</Text>
     </View>
   );
 };

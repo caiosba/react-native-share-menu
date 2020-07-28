@@ -10,6 +10,9 @@ let NO_APP_GROUP_ERROR = "Failed to get App Group User Defaults. Did you set up 
 let USER_DEFAULTS_KEY = "ShareMenuUserDefaults"
 let URL_SCHEME_INFO_PLIST_KEY = "AppURLScheme"
 
+let MIME_TYPE_KEY =  "mimeType"
+let DATA_KEY =  "data"
+
 // MARK: Events
 
 let NEW_SHARE_EVENT = "NewShareEvent"
@@ -25,7 +28,7 @@ class ShareMenu: RCTEventEmitter {
         }
     }
 
-    var sharedData: [String:Any]?
+    var sharedData: [String:String]?
 
     static var initialShare: (UIApplication, URL, [UIApplication.OpenURLOptionsKey : Any])?
 
@@ -105,7 +108,7 @@ class ShareMenu: RCTEventEmitter {
             return
         }
 
-        if let data = userDefaults.object(forKey: USER_DEFAULTS_KEY) as? [String:Any] {
+        if let data = userDefaults.object(forKey: USER_DEFAULTS_KEY) as? [String:String] {
             sharedData = data
             dispatchEvent(with: data)
             userDefaults.removeObject(forKey: USER_DEFAULTS_KEY)
@@ -114,21 +117,13 @@ class ShareMenu: RCTEventEmitter {
 
     @objc(getSharedText:)
     func getSharedText(callback: RCTResponseSenderBlock) {
-        callback([extractShare(from: sharedData)])
+        callback([sharedData as Any])
         sharedData = nil
     }
     
-    func dispatchEvent(with data: [String:Any]) {
+    func dispatchEvent(with data: [String:String]) {
         guard hasListeners else { return }
         
-        let share = extractShare(from: data)
-        sendEvent(withName: NEW_SHARE_EVENT, body: share)
-    }
-    
-    func extractShare(from data: [String:Any]?) -> String {
-        guard let (_, share) = data?.first else {
-            return ""
-        }
-        return share as! String
+        sendEvent(withName: NEW_SHARE_EVENT, body: data)
     }
 }

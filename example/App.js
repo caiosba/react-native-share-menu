@@ -25,8 +25,8 @@ const App: () => React$Node = () => {
 
     const {mimeType, data} = item;
 
-    setSharedMimeType(mimeType);
     setSharedData(data);
+    setSharedMimeType(mimeType);
   }, []);
 
   useEffect(() => {
