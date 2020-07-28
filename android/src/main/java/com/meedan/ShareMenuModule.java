@@ -1,25 +1,34 @@
 package com.meedan;
 
 import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
-import android.widget.Toast;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
 public class ShareMenuModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
+  // Events
   final String NEW_SHARE_EVENT = "NewShareEvent";
+
+  // Keys
+  final String MIME_TYPE_KEY = "mimeType";
+  final String DATA_KEY = "data";
 
   private ReactContext mReactContext;
 
@@ -36,43 +45,43 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
     return "ShareMenu";
   }
 
-  private String extractShared(Intent intent)  {
-    String action = intent.getAction();
+  @Nullable
+  private ReadableMap extractShared(Intent intent)  {
     String type = intent.getType();
 
     if (type == null) {
-      return "";
+      return null;
     }
+
+    String action = intent.getAction();
+
+    WritableMap data = Arguments.createMap();
+    data.putString(MIME_TYPE_KEY, type);
 
     if (Intent.ACTION_SEND.equals(action)) {
       if ("text/plain".equals(type)) {
-        return intent.getStringExtra(Intent.EXTRA_TEXT);
+        data.putString(DATA_KEY, intent.getStringExtra(Intent.EXTRA_TEXT));
+        return data;
       }
 
-      if (type.startsWith("image/") || type.startsWith("video/")) {
-        Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-        if (imageUri != null) {
-          return imageUri.toString();
-        }
-      } else {
-        Toast.makeText(mReactContext, "Type is not supported", Toast.LENGTH_SHORT).show();
+      Uri fileUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+      if (fileUri != null) {
+        data.putString(DATA_KEY, fileUri.toString());
+        return data;
       }
     } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
-      if (type.startsWith("image/") || type.startsWith("video/")) {
-        ArrayList<Uri> imageUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-        if (imageUris != null) {
-          StringBuilder completeString = new StringBuilder();
-          for (Uri uri : imageUris) {
-            completeString.append(uri.toString()).append(",");
-          }
-          return completeString.toString();
+      ArrayList<Uri> fileUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+      if (fileUris != null) {
+        WritableArray uriArr = Arguments.createArray();
+        for (Uri uri : fileUris) {
+          uriArr.pushString(uri.toString());
         }
-      } else {
-        Toast.makeText(mReactContext, "Type is not support", Toast.LENGTH_SHORT).show();
+        data.putArray(DATA_KEY, uriArr);
+        return data;
       }
     }
 
-    return "";
+    return null;
   }
 
   @ReactMethod
@@ -80,25 +89,25 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
     Activity currentActivity = getCurrentActivity();
 
     if (currentActivity == null) {
-      successCallback.invoke("");
+      successCallback.invoke(null);
       return;
     }
 
     Intent intent = currentActivity.getIntent();
 
-    String sharedText = extractShared(intent);
-    successCallback.invoke(sharedText);
+    ReadableMap shared = extractShared(intent);
+    successCallback.invoke(shared);
     clearSharedText();
   }
 
-  private void dispatchEvent(String sharedText) {
+  private void dispatchEvent(ReadableMap shared) {
     if (mReactContext == null || !mReactContext.hasActiveCatalystInstance()) {
       return;
     }
 
     mReactContext
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit(NEW_SHARE_EVENT, sharedText);
+            .emit(NEW_SHARE_EVENT, shared);
   }
 
   public void clearSharedText() {
@@ -118,9 +127,7 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
       return;
     }
 
-    if (type.startsWith("image/") || type.startsWith("video/")) {
-      intent.removeExtra(Intent.EXTRA_STREAM);
-    }
+    intent.removeExtra(Intent.EXTRA_STREAM);
   }
 
   @Override
@@ -138,8 +145,8 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
       return;
     }
 
-    String sharedText = extractShared(intent);
-    dispatchEvent(sharedText);
+    ReadableMap shared = extractShared(intent);
+    dispatchEvent(shared);
 
     // Update intent in case the user calls `getSharedText` again
     currentActivity.setIntent(intent);

@@ -9,16 +9,24 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {StyleSheet, Text, View, Image} from 'react-native';
 import ShareMenu from 'react-native-share-menu';
 
-const App: () => React$Node = () => {
-  const [sharedText, setSharedText] = useState('');
-  const [sharedImg, setSharedImg] = useState('');
+type SharedItem = {
+  mimeType: string,
+  data: string,
+};
 
-  const handleShare = useCallback((data: string) => {
-    if (data.startsWith('content://') || data.startsWith('file://')) {
-      setSharedImg(data);
-    } else {
-      setSharedText(data);
+const App: () => React$Node = () => {
+  const [sharedData, setSharedData] = useState('');
+  const [sharedMimeType, setSharedMimeType] = useState('');
+
+  const handleShare = useCallback((item: ?SharedItem) => {
+    if (!item) {
+      return;
     }
+
+    const {mimeType, data} = item;
+
+    setSharedMimeType(mimeType);
+    setSharedData(data);
   }, []);
 
   useEffect(() => {
@@ -36,15 +44,24 @@ const App: () => React$Node = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.welcome}>React Native Share Menu</Text>
-      <Text style={styles.instructions}>Shared text: {sharedText}</Text>
+      <Text style={styles.instructions}>Shared type: {sharedMimeType}</Text>
+      <Text style={styles.instructions}>
+        Shared text: {sharedMimeType === 'text/plain' ? sharedData : ''}
+      </Text>
       <Text style={styles.instructions}>Shared image:</Text>
-      {sharedImg.length > 1 && (
+      {sharedMimeType.startsWith('image/') && (
         <Image
           style={styles.image}
-          source={{uri: sharedImg}}
+          source={{uri: sharedData}}
           resizeMode="contain"
         />
       )}
+      <Text style={styles.instructions}>
+        Shared file:{' '}
+        {sharedMimeType !== 'text/plain' && !sharedMimeType.startsWith('image/')
+          ? sharedData
+          : ''}
+      </Text>
     </View>
   );
 };
