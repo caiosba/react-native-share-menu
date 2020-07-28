@@ -1,7 +1,7 @@
 {
   "name": "react-native-share-menu",
   "description": "Adds the app to share menu, so it can be launched from share menu and receive data from other apps",
-  "version": "2.2.2",
+  "version": "3.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/meedan/react-native-share-menu.git"

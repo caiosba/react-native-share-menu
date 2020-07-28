@@ -234,3 +234,5 @@ Or check the "example" directory for an example application.
 ## Credits
 
 Sponsored and developed by [Meedan](http://meedan.com).
+
+iOS version maintained by [Gustavo Parreira](https://github.com/Gustash).
