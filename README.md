@@ -206,7 +206,11 @@ const Test = () => {
   }, []);
 
   useEffect(() => {
-    ShareMenu.addNewShareListener(handleShare);
+    const listener = ShareMenu.addNewShareListener(handleShare);
+
+    return () => {
+      listener.remove();
+    };
   }, []);
 
   return (
