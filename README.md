@@ -1,6 +1,6 @@
 # react-native-share-menu
 
-Adds the application to the share menu of the device, so it can be launched from other apps and receive data from them (current text or images).
+Adds the application to the share menu of the device, so it can be launched from other apps and receive data from them.
 
 ## Installation
 
