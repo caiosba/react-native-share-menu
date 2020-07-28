@@ -12,6 +12,7 @@ Pod::Spec.new do |s|
 
   s.platforms    = { :ios => "9.0" }
   s.source       = { :git => "https://github.com/meedan/react-native-share-menu.git", :tag => "#{s.version}" }
+  s.swift_version = "5.2"
 
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
