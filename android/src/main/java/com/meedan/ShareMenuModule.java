@@ -57,9 +57,7 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
       } else {
         Toast.makeText(mReactContext, "Type is not supported", Toast.LENGTH_SHORT).show();
       }
-    }
-
-    if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+    } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
       if (type.startsWith("image/") || type.startsWith("video/")) {
         ArrayList<Uri> imageUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
         if (imageUris != null) {
