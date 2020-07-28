@@ -36,14 +36,6 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
     return "ShareMenu";
   }
 
-//  protected void onNewIntent(Intent intent) {
-//    Activity mActivity = getCurrentActivity();
-//
-//    if(mActivity == null) { return; }
-//
-//    mActivity.setIntent(intent);
-//  }
-
   private String extractShared(Intent intent)  {
     String action = intent.getAction();
     String type = intent.getType();
