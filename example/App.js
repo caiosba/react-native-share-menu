@@ -13,11 +13,7 @@ const App: () => React$Node = () => {
   const [sharedText, setSharedText] = useState('');
   const [sharedImg, setSharedImg] = useState('');
 
-  const handleShare = useCallback((data: ?string) => {
-    if (!data) {
-      return;
-    }
-
+  const handleShare = useCallback((data: string) => {
     if (data.startsWith('content://') || data.startsWith('file://')) {
       setSharedImg(data);
     } else {
