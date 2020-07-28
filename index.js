@@ -6,6 +6,15 @@ const EventEmitter = new NativeEventEmitter(ShareMenu);
 
 const NEW_SHARE_EVENT_NAME = "NewShareEvent";
 
+export const ShareMenuReactView = {
+  dismissExtension() {
+    NativeModules.ShareMenuReactView.dismissExtension();
+  },
+  data() {
+    return NativeModules.ShareMenuReactView.data();
+  },
+};
+
 export default {
   /**
    * @deprecated Use `getInitialShare` instead. This is here for backwards compatibility.

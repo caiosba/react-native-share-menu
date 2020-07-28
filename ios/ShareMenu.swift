@@ -52,7 +52,7 @@ class ShareMenu: RCTEventEmitter {
     }
 
     override static public func requiresMainQueueSetup() -> Bool {
-        return true
+        return false
     }
 
     open override func supportedEvents() -> [String]! {

@@ -10,6 +10,7 @@
 import MobileCoreServices
 import UIKit
 import Social
+import RNShareMenu
 
 extension NSItemProvider {
   var isText: Bool {
@@ -45,13 +46,34 @@ let COULD_NOT_PARSE_IMG_ERROR = "Couldn't parse image"
 let COULD_NOT_SAVE_FILE_ERROR = "Couldn't save file on disk"
 let NO_APP_GROUP_ERROR = "Failed to get App Group User Defaults. Did you set up an App Group on your App and Share Extension?"
 
-class ShareViewController: SLComposeServiceViewController {
-  
+class ShareViewController: SLComposeServiceViewController, RCTBridgeDelegate {
   var hostAppId: String?
   var hostAppUrlScheme: String?
   
+  
+  func sourceURL(for bridge: RCTBridge!) -> URL! {
+#if DEBUG
+    return RCTBundleURLProvider.sharedSettings()?
+      .jsBundleURL(forBundleRoot: "index", fallbackResource: nil)
+#else
+    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+#endif
+  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
+    
+    let bridge: RCTBridge! = RCTBridge(delegate: self, launchOptions: nil)
+    let rootView = RCTRootView(
+      bridge: bridge,
+      moduleName: "share",
+      initialProperties: nil
+    )
+    rootView.backgroundColor = nil
+    
+    self.view = rootView
+    
+    ShareMenuReactView.attachExtensionContext(self.extensionContext!)
     
     if let hostAppId = Bundle.main.object(forInfoDictionaryKey: HOST_APP_IDENTIFIER_INFO_PLIST_KEY) as? String {
       self.hostAppId = hostAppId
@@ -65,6 +87,10 @@ class ShareViewController: SLComposeServiceViewController {
       print("Error: \(NO_INFO_PLIST_URL_SCHEME_ERROR)")
     }
   }
+  
+  override func viewWillDisappear(_ animated: Bool) {
+    ShareMenuReactView.detachExtensionContext()
+  }
 
     override func isContentValid() -> Bool {
         // Do validation of contentText and/or NSExtensionContext attachments here
@@ -74,11 +100,11 @@ class ShareViewController: SLComposeServiceViewController {
     override func didSelectPost() {
         // This is called after the user selects Post. Do the upload of contentText and/or NSExtensionContext attachments.
       guard let item = extensionContext?.inputItems.first as? NSExtensionItem else {
-        completeRequest()
+        cancelRequest()
         return
       }
       guard let provider = item.attachments?.first else {
-        completeRequest()
+        cancelRequest()
         return
       }
       
@@ -224,7 +250,7 @@ class ShareViewController: SLComposeServiceViewController {
   
   private func exit(withError error: String) {
     print("Error: \(error)")
-    completeRequest()
+    cancelRequest()
   }
   
   private func openHostApp() {
@@ -250,6 +276,10 @@ class ShareViewController: SLComposeServiceViewController {
   private func completeRequest() {
     // Inform the host that we're done, so it un-blocks its UI. Note: Alternatively you could call super's -didSelectPost, which will similarly complete the extension context.
     extensionContext!.completeRequest(returningItems: [], completionHandler: nil)
+  }
+  
+  private func cancelRequest() {
+    extensionContext!.cancelRequest(withError: NSError())
   }
 
 }
