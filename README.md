@@ -150,7 +150,7 @@ Run `pod install` in your `ios/` directory.
 <br>
 Create a bridging header by right clicking on your project folder:
 
-- Selecting Add Files to "PROJECT_NAME"
+- Selecting New File...
 - Choose Swift
 - Make sure the selected target is your main app target
 - Create file and say yes to creating a Bridging Header file
@@ -233,6 +233,23 @@ Finally, in your `AppDelegate.m` add the following:
 ### Custom View Instructions (optional)
 
 If you want a custom sharing view, do these steps:
+
+Right click on your Share Extension folder, and choose `New File...`
+
+Select Objective-C, make sure the target is your Share Extension
+
+Create the file and say yes when prompted to create a Bridging Header
+
+Delete the created `.m` file
+
+Add the following to the new `Bridging-Header.h` file:
+
+```Objective-c
+#import <React/RCTBridge.h>
+#import <React/RCTBundleURLProvider.h>
+#import <React/RCTBridgeDelegate.h>
+#import <React/RCTRootView.h>
+```
 
 Right click on your Share Extension folder, and choose `Add Files to "ProjectName"`
 
