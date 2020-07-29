@@ -29,9 +29,9 @@ target 'Test' do
 end
 
 target 'ShareExtension' do
-  config = use_native_modules!
+  use_react_native!
 
-  use_react_native!(:path => config["reactNativePath"])
+  pod 'RNShareMenu', :path => '../..'
 end
 
 target 'Test-tvOS' do
