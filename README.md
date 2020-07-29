@@ -108,6 +108,55 @@ On the pop-up, select `node_modules/react-native-share-menu/ios/ShareViewControl
 
 ![Add View Controller](screenshots/Xcode-04.png)
 
+Make these changes to your Podfile:
+
+```diff
+target '<PROJECT_NAME>' do
+  config = use_native_modules!
+
+  use_react_native!(:path => config["reactNativePath"])
+
+  target '<PROJECT_NAME>Tests' do
+    inherit! :complete
+    # Pods for testing
+  end
+
+  # Enables Flipper.
+  #
+  # Note that if you have use_frameworks! enabled, Flipper will not work and
+  # you should disable these next few lines.
+  use_flipper!
+  post_install do |installer|
+    flipper_post_install(installer)
++    installer.pods_project.targets.each do |target|
++      target.build_configurations.each do |config|
++        config.build_settings['APPLICATION_EXTENSION_API_ONLY'] = 'NO'
++      end
++    end
+  end
+end
+
++target '<SHARE_EXTENSION_NAME>' do
++  config = use_native_modules!
++
++  use_react_native!(:path => config["reactNativePath"])
++end
+```
+
+Run `pod install` in your `ios/` directory.
+
+<details>
+<summary>If you're using React Native < 0.62</summary>
+<br>
+Create a bridging header by right clicking on your project folder:
+
+- Selecting Add Files to "PROJECT_NAME"
+- Choose Swift
+- Make sure the selected target is your main app target
+- Create file and say yes to creating a Bridging Header file
+- Delete everything in the Swift file, but keep the file around
+</details>
+
 Create an App Group to be able to share data between your extension and your app. To do so, go to your app target's settings, go to `Signing & Capabilities`, press `+ Capability` and select `App Groups`
 
 ![Add App Groups](screenshots/Xcode-05.png)
@@ -185,43 +234,6 @@ Finally, in your `AppDelegate.m` add the following:
 
 If you want a custom sharing view, do these steps:
 
-Make these changes to your Podfile:
-
-```diff
-target '<PROJECT_NAME>' do
-  config = use_native_modules!
-
-  use_react_native!(:path => config["reactNativePath"])
-
-  target '<PROJECT_NAME>Tests' do
-    inherit! :complete
-    # Pods for testing
-  end
-
-  # Enables Flipper.
-  #
-  # Note that if you have use_frameworks! enabled, Flipper will not work and
-  # you should disable these next few lines.
-  use_flipper!
-  post_install do |installer|
-    flipper_post_install(installer)
-+    installer.pods_project.targets.each do |target|
-+      target.build_configurations.each do |config|
-+        config.build_settings['APPLICATION_EXTENSION_API_ONLY'] = 'NO'
-+      end
-+    end
-  end
-end
-
-target '<SHARE_EXTENSION_NAME>' do
-  config = use_native_modules!
-
-  use_react_native!(:path => config["reactNativePath"])
-end
-```
-
-Run `pod install` in your `ios/` directory.
-
 Right click on your Share Extension folder, and choose `Add Files to "ProjectName"`
 
 On the pop-up, select `node_modules/react-native-share-menu/ios/ReactShareViewController.swift`. Make sure `Copy items if needed` is NOT selected and that the selected target is your newly created Share Extension
@@ -274,7 +286,10 @@ Feel free to change the values in ReactShareViewBackgroundColor to whatever you 
 Finally, in your `index.js` file, register the component you want to render in your Share Extension view:
 
 ```javascript
-AppRegistry.registerComponent('ShareMenuModuleComponent', () => MyShareComponent);
+AppRegistry.registerComponent(
+  "ShareMenuModuleComponent",
+  () => MyShareComponent
+);
 ```
 
 If you're rendering an empty component, you should be seeing something similar to this when you share to your app:
@@ -353,11 +368,11 @@ const Test = () => {
 };
 
 const Share = () => {
-  const [sharedData, setSharedData] = useState('');
-  const [sharedMimeType, setSharedMimeType] = useState('');
+  const [sharedData, setSharedData] = useState("");
+  const [sharedMimeType, setSharedMimeType] = useState("");
 
   useEffect(() => {
-    ShareMenuReactView.data().then(({mimeType, data}) => {
+    ShareMenuReactView.data().then(({ mimeType, data }) => {
       setSharedData(data);
       setSharedMimeType(mimeType);
     });
@@ -393,11 +408,13 @@ const Share = () => {
       <Button
         title="Continue In App With Extra Data"
         onPress={() => {
-          ShareMenuReactView.continueInApp({hello: "from the other side"});
+          ShareMenuReactView.continueInApp({ hello: "from the other side" });
         }}
       />
       {sharedMimeType === "text/plain" && <Text>{sharedData}</Text>}
-      {sharedMimeType.startsWith("image/") && <Image source={{uri: sharedData}} />}
+      {sharedMimeType.startsWith("image/") && (
+        <Image source={{ uri: sharedData }} />
+      )}
     </View>
   );
 };
