@@ -28,6 +28,7 @@ public let COULD_NOT_FIND_ITEM_ERROR = "Couldn't find item attached to this shar
 // MARK: Keys
 
 public let USER_DEFAULTS_KEY = "ShareMenuUserDefaults"
+public let USER_DEFAULTS_EXTRA_DATA_KEY = "ShareMenuUserDefaultsExtraData"
 public let URL_SCHEME_INFO_PLIST_KEY = "AppURLScheme"
 public let HOST_APP_IDENTIFIER_INFO_PLIST_KEY = "HostAppBundleIdentifier"
 public let HOST_URL_SCHEME_INFO_PLIST_KEY = "HostAppURLScheme"
@@ -41,6 +42,7 @@ public let COLOR_TRANSPARENT_KEY = "Transparent"
 
 public let MIME_TYPE_KEY =  "mimeType"
 public let DATA_KEY =  "data"
+public let EXTRA_DATA_KEY =  "extraData"
 
 // MARK: Events
 

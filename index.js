@@ -13,8 +13,8 @@ export const ShareMenuReactView = {
   openApp() {
     NativeModules.ShareMenuReactView.openApp();
   },
-  continueInApp() {
-    NativeModules.ShareMenuReactView.continueInApp();
+  continueInApp(extraData = null) {
+    NativeModules.ShareMenuReactView.continueInApp(extraData);
   },
   data() {
     return NativeModules.ShareMenuReactView.data();

@@ -52,10 +52,16 @@ class ShareViewController: SLComposeServiceViewController {
         return []
     }
 
-  func handlePost(_ item: NSExtensionItem) {
+  func handlePost(_ item: NSExtensionItem, extraData: [String:Any]? = nil) {
     guard let provider = item.attachments?.first else {
       cancelRequest()
       return
+    }
+
+    if let data = extraData {
+      storeExtraData(data)
+    } else {
+      removeExtraData()
     }
 
     if provider.isText {
@@ -65,6 +71,32 @@ class ShareViewController: SLComposeServiceViewController {
     } else {
       storeFile(withProvider: provider)
     }
+  }
+
+  func storeExtraData(_ data: [String:Any]) {
+    guard let hostAppId = self.hostAppId else {
+      print("Error: \(NO_INFO_PLIST_INDENTIFIER_ERROR)")
+      return
+    }
+    guard let userDefaults = UserDefaults(suiteName: "group.\(hostAppId)") else {
+      print("Error: \(NO_APP_GROUP_ERROR)")
+      return
+    }
+    userDefaults.set(data, forKey: USER_DEFAULTS_EXTRA_DATA_KEY)
+    userDefaults.synchronize()
+  }
+
+  func removeExtraData() {
+    guard let hostAppId = self.hostAppId else {
+      print("Error: \(NO_INFO_PLIST_INDENTIFIER_ERROR)")
+      return
+    }
+    guard let userDefaults = UserDefaults(suiteName: "group.\(hostAppId)") else {
+      print("Error: \(NO_APP_GROUP_ERROR)")
+      return
+    }
+    userDefaults.removeObject(forKey: USER_DEFAULTS_EXTRA_DATA_KEY)
+    userDefaults.synchronize()
   }
   
   func storeText(withProvider provider: NSItemProvider) {

@@ -56,8 +56,8 @@ public class ShareMenuReactView: NSObject {
         viewDelegate.openApp()
     }
 
-    @objc
-    func continueInApp() {
+    @objc(continueInApp:)
+    func continueInApp(_ extraData: [String:Any]?) {
         guard let viewDelegate = ShareMenuReactView.viewDelegate else {
             print("Error: \(NO_DELEGATE_ERROR)")
             return
@@ -70,7 +70,7 @@ public class ShareMenuReactView: NSObject {
             return
         }
 
-        viewDelegate.continueInApp(with: item)
+        viewDelegate.continueInApp(with: item, and: extraData)
     }
     
     @objc(data:reject:)

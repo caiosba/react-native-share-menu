@@ -59,6 +59,12 @@ const Share = () => {
             ShareMenuReactView.continueInApp();
           }}
         />
+        <Button
+          title="Continue In App With Extra Data"
+          onPress={() => {
+            ShareMenuReactView.continueInApp({hello: 'from the other side'});
+          }}
+        />
       </View>
     </View>
   );

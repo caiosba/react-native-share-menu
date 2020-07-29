@@ -17,15 +17,17 @@ type SharedItem = {
 const App: () => React$Node = () => {
   const [sharedData, setSharedData] = useState('');
   const [sharedMimeType, setSharedMimeType] = useState('');
+  const [sharedExtraData, setSharedExtraData] = useState(null);
 
   const handleShare = useCallback((item: ?SharedItem) => {
     if (!item) {
       return;
     }
 
-    const {mimeType, data} = item;
+    const {mimeType, data, extraData} = item;
 
     setSharedData(data);
+    setSharedExtraData(extraData);
     setSharedMimeType(mimeType);
   }, []);
 
@@ -62,6 +64,9 @@ const App: () => React$Node = () => {
           ? sharedData
           : ''}
       </Text>
+      <Text style={styles.instructions}>
+        Extra data: {sharedExtraData ? JSON.stringify(sharedExtraData) : ''}
+      </Text>
     </View>
   );
 };
@@ -85,7 +90,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    flex: 1,
+    height: 200,
   },
 });
 

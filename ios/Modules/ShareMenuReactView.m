@@ -8,6 +8,6 @@ RCT_EXTERN_METHOD(dismissExtension:(NSString *)error)
 
 RCT_EXTERN_METHOD(openApp)
 
-RCT_EXTERN_METHOD(continueInApp)
+RCT_EXTERN_METHOD(continueInApp:(NSDictionary *)extraData)
 
 @end
