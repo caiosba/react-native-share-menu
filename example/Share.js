@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, Pressable, Image, Alert} from 'react-native';
+import {View, Text, Pressable, Image, StyleSheet} from 'react-native';
 import {ShareMenuReactView} from 'react-native-share-menu';
 
 const Button = ({onPress, title, style}) => (
@@ -21,14 +21,14 @@ const Share = () => {
   }, []);
 
   return (
-    <View style={{flex: 1, backgroundColor: 'white'}}>
-      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+    <View style={styles.container}>
+      <View style={styles.header}>
         <Button
           title="Dismiss"
           onPress={() => {
             ShareMenuReactView.dismissExtension();
           }}
-          style={{color: 'red'}}
+          style={styles.destructive}
         />
         <Button
           title={sending ? "Sending..." : 'Send'}
@@ -40,24 +40,24 @@ const Share = () => {
             }, 3000);
           }}
           disabled={sending}
-          style={{color: sending ? 'grey' : 'blue'}}
+          style={sending ? styles.sending : styles.send}
         />
       </View>
       {sharedMimeType === 'text/plain' && <Text>{sharedData}</Text>}
       {sharedMimeType.startsWith('image/') && (
         <Image
-          style={{width: '100%', height: 200}}
+          style={styles.image}
           resizeMode="contain"
           source={{uri: sharedData}}
         />
       )}
-      <View style={{alignItems: 'center'}}>
+      <View style={styles.buttonGroup}>
         <Button
           title="Dismiss with Error"
           onPress={() => {
             ShareMenuReactView.dismissExtension('Dismissed with error');
           }}
-          style={{color: 'red'}}
+          style={styles.destructive}
         />
         <Button
           title="Continue In App"
@@ -75,5 +75,32 @@ const Share = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  destructive: {
+    color: 'red',
+  },
+  send: {
+    color: 'blue',
+  },
+  sending: {
+    color: 'grey',
+  },
+  image: {
+    width: '100%',
+    height: 200,
+  },
+  buttonGroup: {
+    alignItems: 'center',
+  },
+});
 
 export default Share;
