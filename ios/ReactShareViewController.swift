@@ -25,7 +25,7 @@ class ReactShareViewController: ShareViewController, RCTBridgeDelegate, ReactSha
     let bridge: RCTBridge! = RCTBridge(delegate: self, launchOptions: nil)
     let rootView = RCTRootView(
       bridge: bridge,
-      moduleName: "share",
+      moduleName: "ShareMenuModuleComponent",
       initialProperties: nil
     )
 

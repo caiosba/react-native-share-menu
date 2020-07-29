@@ -118,7 +118,7 @@ Repeat this process for the Share Extension target, with the exact same group na
 
 Add the following to your app's `Info.plist` (if you already had other URL Schemes, make sure the one you're adding now is the FIRST one):
 
-```OpenStep Property List:
+```OpenStep Property List
 <key>CFBundleURLTypes</key>
 <array>
     <dict>
@@ -134,7 +134,7 @@ Add the following to your app's `Info.plist` (if you already had other URL Schem
 
 Add the following to your Share Extension's `Info.plist`:
 
-```OpenStep Property List:
+```OpenStep Property List
 <key>HostAppBundleIdentifier</key>
 <string>YOUR_APP_TARGET_BUNDLE_ID</string>
 <key>HostAppURLScheme</key>
@@ -181,16 +181,117 @@ Finally, in your `AppDelegate.m` add the following:
 @end
 ```
 
+### Custom View Instructions (optional)
+
+If you want a custom sharing view, do these steps:
+
+Make these changes to your Podfile:
+
+```diff
+target '<PROJECT_NAME>' do
+  config = use_native_modules!
+
+  use_react_native!(:path => config["reactNativePath"])
+
+  target '<PROJECT_NAME>Tests' do
+    inherit! :complete
+    # Pods for testing
+  end
+
+  # Enables Flipper.
+  #
+  # Note that if you have use_frameworks! enabled, Flipper will not work and
+  # you should disable these next few lines.
+  use_flipper!
+  post_install do |installer|
+    flipper_post_install(installer)
++    installer.pods_project.targets.each do |target|
++      target.build_configurations.each do |config|
++        config.build_settings['APPLICATION_EXTENSION_API_ONLY'] = 'NO'
++      end
++    end
+  end
+end
+
+target '<SHARE_EXTENSION_NAME>' do
+  config = use_native_modules!
+
+  use_react_native!(:path => config["reactNativePath"])
+end
+```
+
+Run `pod install` in your `ios/` directory.
+
+Right click on your Share Extension folder, and choose `Add Files to "ProjectName"`
+
+On the pop-up, select `node_modules/react-native-share-menu/ios/ReactShareViewController.swift`. Make sure `Copy items if needed` is NOT selected and that the selected target is your newly created Share Extension
+
+![React View Controller Instructions](screenshots/Xcode-06.png)
+
+Now go to your `MainInterface.storyboard` and:
+
+1. Select the first item in the storyboard inspector
+
+2. Select `Show the Identity Inspector` on the right
+
+3. Replace the value in `Class` with `ReactShareViewController`
+
+![Storyboard Instructions](screenshots/Xcode-07.png)
+
+Open your Share Extension's `Info.plist` and add the following:
+
+```OpenStep Property List
+<key>ReactShareViewBackgroundColor</key>
+<dict>
+    <key>Red</key>
+    <integer>1</integer>
+    <key>Green</key>
+    <integer>1</integer>
+    <key>Blue</key>
+    <integer>1</integer>
+    <key>Alpha</key>
+    <integer>1</integer>
+    <key>Transparent</key>
+    <false/>
+</dict>
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+    <key>NSExceptionDomains</key>
+    <dict>
+        <key>localhost</key>
+        <dict>
+            <key>NSExceptionAllowsInsecureHTTPLoads</key>
+            <true/>
+        </dict>
+    </dict>
+</dict>
+```
+
+Feel free to change the values in ReactShareViewBackgroundColor to whatever you want.
+
+Finally, in your `index.js` file, register the component you want to render in your Share Extension view:
+
+```javascript
+AppRegistry.registerComponent('ShareMenuModuleComponent', () => MyShareComponent);
+```
+
+If you're rendering an empty component, you should be seeing something similar to this when you share to your app:
+
+![Empty Share View Example](screenshots/CustomReactShareView.gif)
+
 ## Example
 
 ```javascript
 import React, { useState, useEffect, useCallback } from "react";
-import { AppRegistry, Text, View, Image } from "react-native";
-import ShareMenu from "react-native-share-menu";
+import { AppRegistry, Text, View, Image, Button } from "react-native";
+import ShareMenu, { ShareMenuReactView } from "react-native-share-menu";
 
 type SharedItem = {
   mimeType: string,
   data: string,
+  extraData: any,
 };
 
 const Test = () => {
@@ -202,10 +303,12 @@ const Test = () => {
       return;
     }
 
-    const { mimeType, data } = item;
+    const { mimeType, data, extraData } = item;
 
     setSharedData(data);
     setSharedMimeType(mimeType);
+    // You can receive extra data from your custom Share View
+    console.log(extraData);
   }, []);
 
   useEffect(() => {
@@ -249,7 +352,58 @@ const Test = () => {
   );
 };
 
+const Share = () => {
+  const [sharedData, setSharedData] = useState('');
+  const [sharedMimeType, setSharedMimeType] = useState('');
+
+  useEffect(() => {
+    ShareMenuReactView.data().then(({mimeType, data}) => {
+      setSharedData(data);
+      setSharedMimeType(mimeType);
+    });
+  }, []);
+
+  return (
+    <View>
+      <Button
+        title="Dismiss"
+        onPress={() => {
+          ShareMenuReactView.dismissExtension();
+        }}
+      />
+      <Button
+        title="Send"
+        onPress={() => {
+          // Share something before dismissing
+          ShareMenuReactView.dismissExtension();
+        }}
+      />
+      <Button
+        title="Dismiss with Error"
+        onPress={() => {
+          ShareMenuReactView.dismissExtension("Something went wrong!");
+        }}
+      />
+      <Button
+        title="Continue In App"
+        onPress={() => {
+          ShareMenuReactView.continueInApp();
+        }}
+      />
+      <Button
+        title="Continue In App With Extra Data"
+        onPress={() => {
+          ShareMenuReactView.continueInApp({hello: "from the other side"});
+        }}
+      />
+      {sharedMimeType === "text/plain" && <Text>{sharedData}</Text>}
+      {sharedMimeType.startsWith("image/") && <Image source={{uri: sharedData}} />}
+    </View>
+  );
+};
+
 AppRegistry.registerComponent("Test", () => Test);
+AppRegistry.registerComponent("ShareMenuModuleComponent", () => Share);
 ```
 
 Or check the "example" directory for an example application.
