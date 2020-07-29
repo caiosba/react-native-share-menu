@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, Pressable, Image} from 'react-native';
+import {View, Text, Pressable, Image, Alert} from 'react-native';
 import {ShareMenuReactView} from 'react-native-share-menu';
 
 const Button = ({onPress, title, style}) => (
@@ -11,6 +11,7 @@ const Button = ({onPress, title, style}) => (
 const Share = () => {
   const [sharedData, setSharedData] = useState('');
   const [sharedMimeType, setSharedMimeType] = useState('');
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     ShareMenuReactView.data().then(({mimeType, data}) => {
@@ -30,11 +31,16 @@ const Share = () => {
           style={{color: 'red'}}
         />
         <Button
-          title="Send"
+          title={sending ? "Sending..." : 'Send'}
           onPress={() => {
-            ShareMenuReactView.dismissExtension();
+            setSending(true);
+
+            setTimeout(() => {
+              ShareMenuReactView.dismissExtension();
+            }, 3000);
           }}
-          style={{color: 'blue'}}
+          disabled={sending}
+          style={{color: sending ? 'grey' : 'blue'}}
         />
       </View>
       {sharedMimeType === 'text/plain' && <Text>{sharedData}</Text>}
