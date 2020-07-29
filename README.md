@@ -153,7 +153,7 @@ Create a bridging header by right clicking on your project folder:
 - Selecting New File...
 - Choose Swift
 - Make sure the selected target is your main app target
-- Create file and say yes to creating a Bridging Header file
+- Create the file and say yes to creating a Bridging Header file
 - Delete everything in the Swift file, but keep the file around
 </details>
 
