@@ -4,6 +4,10 @@
 
 RCT_EXTERN_METHOD(data:(RCTPromiseResolveBlock)resolver reject:(RCTPromiseRejectBlock)rejecter)
 
-RCT_EXTERN_METHOD(dismissExtension)
+RCT_EXTERN_METHOD(dismissExtension:(NSString *)error)
+
+RCT_EXTERN_METHOD(openApp)
+
+RCT_EXTERN_METHOD(continueInApp)
 
 @end

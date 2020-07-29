@@ -22,6 +22,7 @@
 		8184BD3F09E4046D2C799310 /* libPods-Test-TestTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 94A0996B7CE00C7DAA54184A /* libPods-Test-TestTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		92BC858F3CD1DBE2E0EB2A56 /* libPods-Test-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A0F0676B24D0CC2F00187EC9 /* libPods-Test-tvOSTests.a */; };
+		A000E87224D18BA600A3F5E1 /* ReactShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000E87124D18BA600A3F5E1 /* ReactShareViewController.swift */; };
 		A05E9B1F24CD9F670028C21E /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A05E9B1D24CD9F670028C21E /* MainInterface.storyboard */; };
 		A05E9B2324CD9F670028C21E /* ShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A05E9B1924CD9F670028C21E /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A05E9B3924CDEA470028C21E /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A05E9B3824CDEA470028C21E /* ShareViewController.swift */; };
@@ -91,6 +92,7 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Test/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		92A3503C3653AD5783847411 /* Pods-Test-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Test-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Test-tvOSTests/Pods-Test-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		94A0996B7CE00C7DAA54184A /* libPods-Test-TestTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Test-TestTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A000E87124D18BA600A3F5E1 /* ReactShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReactShareViewController.swift; path = ../../../ios/ReactShareViewController.swift; sourceTree = "<group>"; };
 		A05E9B1924CD9F670028C21E /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A05E9B1E24CD9F670028C21E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
 		A05E9B2024CD9F670028C21E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -147,7 +149,6 @@
 		A0F0676924D0CC2F00187EC9 /* libPods-Test-TestTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libPods-Test-TestTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0F0676A24D0CC2F00187EC9 /* libPods-Test-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libPods-Test-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0F0676B24D0CC2F00187EC9 /* libPods-Test-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libPods-Test-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		A0F0676C24D0CC2F00187EC9 /* libPods-Test.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libPods-Test.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0F0676D24D0CC2F00187EC9 /* libRCTTypeSafety.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libRCTTypeSafety.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0F0676E24D0CC2F00187EC9 /* libReact-Core.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-Core.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0F0676F24D0CC2F00187EC9 /* libReact-CoreModules.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-CoreModules.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -393,6 +394,7 @@
 			isa = PBXGroup;
 			children = (
 				A05E9B3824CDEA470028C21E /* ShareViewController.swift */,
+				A000E87124D18BA600A3F5E1 /* ReactShareViewController.swift */,
 				A05E9B2724CD9F6D0028C21E /* ShareExtension.entitlements */,
 				A05E9B1D24CD9F670028C21E /* MainInterface.storyboard */,
 				A05E9B2024CD9F670028C21E /* Info.plist */,
@@ -875,6 +877,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A000E87224D18BA600A3F5E1 /* ReactShareViewController.swift in Sources */,
 				A05E9B3924CDEA470028C21E /* ShareViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

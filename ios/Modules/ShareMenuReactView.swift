@@ -9,34 +9,80 @@ import MobileCoreServices
 
 @objc(ShareMenuReactView)
 public class ShareMenuReactView: NSObject {
-    static var extensionContext: NSExtensionContext? = nil
+    static var viewDelegate: ReactShareViewDelegate?
     
     @objc
     static public func requiresMainQueueSetup() -> Bool {
         return false
     }
     
-    public static func attachExtensionContext(_ context: NSExtensionContext!) {
-        guard (ShareMenuReactView.extensionContext == nil) else { return }
+    public static func attachViewDelegate(_ delegate: ReactShareViewDelegate!) {
+        guard (ShareMenuReactView.viewDelegate == nil) else { return }
         
-        ShareMenuReactView.extensionContext = context
+        ShareMenuReactView.viewDelegate = delegate
     }
     
-    public static func detachExtensionContext() {
-        ShareMenuReactView.extensionContext = nil
+    public static func detachViewDelegate() {
+        ShareMenuReactView.viewDelegate = nil
     }
     
+    @objc(dismissExtension:)
+    func dismissExtension(_ error: String?) {
+        guard let extensionContext = ShareMenuReactView.viewDelegate?.loadExtensionContext() else {
+            print("Error: \(NO_EXTENSION_CONTEXT_ERROR)")
+            return
+        }
+
+        if error != nil {
+            let exception = NSError(
+                domain: Bundle.main.bundleIdentifier!,
+                code: DISMISS_SHARE_EXTENSION_WITH_ERROR_CODE,
+                userInfo: ["error": error!]
+            )
+            extensionContext.cancelRequest(withError: exception)
+            return
+        }
+
+        extensionContext.completeRequest(returningItems: [], completionHandler: nil)
+    }
+
     @objc
-    func dismissExtension() {
-        ShareMenuReactView.extensionContext!
-            .completeRequest(returningItems: [], completionHandler: nil)
+    func openApp() {
+        guard let viewDelegate = ShareMenuReactView.viewDelegate else {
+            print("Error: \(NO_DELEGATE_ERROR)")
+            return
+        }
+
+        viewDelegate.openApp()
+    }
+
+    @objc
+    func continueInApp() {
+        guard let viewDelegate = ShareMenuReactView.viewDelegate else {
+            print("Error: \(NO_DELEGATE_ERROR)")
+            return
+        }
+
+        let extensionContext = viewDelegate.loadExtensionContext()
+
+        guard let item = extensionContext.inputItems.first as? NSExtensionItem else {
+            print("Error: \(COULD_NOT_FIND_ITEM_ERROR)")
+            return
+        }
+
+        viewDelegate.continueInApp(with: item)
     }
     
     @objc(data:reject:)
     func data(_
             resolve: @escaping RCTPromiseResolveBlock,
             reject: @escaping RCTPromiseRejectBlock) {
-        extractDataFromContext(context: ShareMenuReactView.extensionContext!) { (data, mimeType, error) in
+        guard let extensionContext = ShareMenuReactView.viewDelegate?.loadExtensionContext() else {
+            print("Error: \(NO_EXTENSION_CONTEXT_ERROR)")
+            return
+        }
+
+        extractDataFromContext(context: extensionContext) { (data, mimeType, error) in
             guard (error == nil) else {
                 reject("error", error?.description, nil)
                 return

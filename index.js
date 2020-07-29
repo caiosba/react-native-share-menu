@@ -7,8 +7,14 @@ const EventEmitter = new NativeEventEmitter(ShareMenu);
 const NEW_SHARE_EVENT_NAME = "NewShareEvent";
 
 export const ShareMenuReactView = {
-  dismissExtension() {
-    NativeModules.ShareMenuReactView.dismissExtension();
+  dismissExtension(error = null) {
+    NativeModules.ShareMenuReactView.dismissExtension(error);
+  },
+  openApp() {
+    NativeModules.ShareMenuReactView.openApp();
+  },
+  continueInApp() {
+    NativeModules.ShareMenuReactView.continueInApp();
   },
   data() {
     return NativeModules.ShareMenuReactView.data();

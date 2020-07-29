@@ -2,6 +2,12 @@ import React, {useEffect, useState} from 'react';
 import {View, Text, Pressable, Image} from 'react-native';
 import {ShareMenuReactView} from 'react-native-share-menu';
 
+const Button = ({onPress, title, style}) => (
+  <Pressable onPress={onPress}>
+    <Text style={[{fontSize: 16, margin: 16}, style]}>{title}</Text>
+  </Pressable>
+)
+
 const Share = () => {
   const [sharedData, setSharedData] = useState('');
   const [sharedMimeType, setSharedMimeType] = useState('');
@@ -15,13 +21,22 @@ const Share = () => {
 
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
-      <Pressable
-        onPress={() => {
-          ShareMenuReactView.dismissExtension();
-        }}
-        style={{alignItems: 'flex-end'}}>
-        <Text style={{fontSize: 16, margin: 16, color: 'green'}}>Close</Text>
-      </Pressable>
+      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+        <Button
+          title="Dismiss"
+          onPress={() => {
+            ShareMenuReactView.dismissExtension();
+          }}
+          style={{color: 'red'}}
+        />
+        <Button
+          title="Send"
+          onPress={() => {
+            ShareMenuReactView.dismissExtension();
+          }}
+          style={{color: 'blue'}}
+        />
+      </View>
       {sharedMimeType === 'text/plain' && <Text>{sharedData}</Text>}
       {sharedMimeType.startsWith('image/') && (
         <Image
@@ -30,6 +45,21 @@ const Share = () => {
           source={{uri: sharedData}}
         />
       )}
+      <View style={{alignItems: 'center'}}>
+        <Button
+          title="Dismiss with Error"
+          onPress={() => {
+            ShareMenuReactView.dismissExtension('Dismissed with error');
+          }}
+          style={{color: 'red'}}
+        />
+        <Button
+          title="Continue In App"
+          onPress={() => {
+            ShareMenuReactView.continueInApp();
+          }}
+        />
+      </View>
     </View>
   );
 };

@@ -1,22 +1,3 @@
-// MARK: Error Messages
-
-let NO_URL_TYPES_ERROR_MESSAGE = "You have not defined CFBundleURLTypes in your Info.plist"
-let NO_URL_SCHEMES_ERROR_MESSAGE = "You have not defined CFBundleURLSchemes in your Info.plist"
-let NO_SCHEME_ERROR_MESSAGE = "You have not defined a scheme under CFBundleURLSchemes in your Info.plist"
-let NO_APP_GROUP_ERROR = "Failed to get App Group User Defaults. Did you set up an App Group on your App and Share Extension?"
-
-// MARK: Keys
-
-let USER_DEFAULTS_KEY = "ShareMenuUserDefaults"
-let URL_SCHEME_INFO_PLIST_KEY = "AppURLScheme"
-
-let MIME_TYPE_KEY =  "mimeType"
-let DATA_KEY =  "data"
-
-// MARK: Events
-
-let NEW_SHARE_EVENT = "NewShareEvent"
-
 @objc(ShareMenu)
 class ShareMenu: RCTEventEmitter {
 
