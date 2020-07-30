@@ -167,9 +167,7 @@ Or check the "example" directory for an example application.
 
 ### Android
 
-<img src="screenshots/android-menu.png" width="47%">
-
-<img src="screenshots/android-app.png" width="47%">
+<img src="screenshots/android-menu.png" width="47%"> <img src="screenshots/android-app.png" width="47%">
 
 ### iOS
 
