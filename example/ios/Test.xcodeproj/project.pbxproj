@@ -484,6 +484,7 @@
 				A05E9B1524CD9F670028C21E /* Sources */,
 				A05E9B1624CD9F670028C21E /* Frameworks */,
 				A05E9B1724CD9F670028C21E /* Resources */,
+				A0CD534224D41C2E0057D341 /* Bundle React Native code and images */,
 				3DF0B84700E3F2C28A6EBDE1 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
@@ -606,7 +607,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
+			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		0C2F043F22AA696165077FA2 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -745,6 +746,24 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Test-TestTests/Pods-Test-TestTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		A0CD534224D41C2E0057D341 /* Bundle React Native code and images */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Bundle React Native code and images";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		DE1711632D695F6EF19AF198 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;

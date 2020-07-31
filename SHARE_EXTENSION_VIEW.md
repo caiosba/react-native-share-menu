@@ -74,6 +74,29 @@ Open your Share Extension's `Info.plist` and add the following:
 
 Feel free to change the values in ReactShareViewBackgroundColor to whatever you want.
 
+## Bundle JS code and assets in your Share Extension
+
+If you're planning to run builds outside the simulator, or to make Release builds, add a `Run Script Phase` to your Share Extension target:
+
+- Go to your Share Extension target's `Build Phases` settings
+
+- Add a new `Build Phase` and select `New Run Script Phase`
+
+- Rename it to `Bundle React Native code and images`
+
+- Leave the shell as `/bin/sh` and paste the following as the script:
+
+```shell
+export NODE_BINARY=node
+../node_modules/react-native/scripts/react-native-xcode.sh
+```
+
+- Drag it behind `[CP] Copy Pods Resources`
+
+You should end up with something like this:
+
+![Share Extension Build Phases](screenshots/Xcode-08.png)
+
 ## Register Component
 
 Finally, in your `index.js` file, register the component you want to render in your Share Extension view:

@@ -296,7 +296,7 @@ PODS:
     - React-Core (= 0.63.2)
     - React-cxxreact (= 0.63.2)
     - React-jsi (= 0.63.2)
-  - RNShareMenu (4.1.1):
+  - RNShareMenu (4.1.3):
     - React
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -460,10 +460,10 @@ SPEC CHECKSUMS:
   React-RCTText: 1b6773e776e4b33f90468c20fe3b16ca3e224bb8
   React-RCTVibration: 4d2e726957f4087449739b595f107c0d4b6c2d2d
   ReactCommon: a0a1edbebcac5e91338371b72ffc66aa822792ce
-  RNShareMenu: 4f28793dcd211436f6bd9a3cabcb6a4affe4674c
+  RNShareMenu: 916e2500637b7b6f02ac50b5cb4f3fb027efe98d
   Yoga: 7740b94929bbacbddda59bf115b5317e9a161598
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 4db4707d47936b02c7a08163786e29882429c694
+PODFILE CHECKSUM: f5882acce3ccb72d524e52d64e8194cbbb00bbb5
 
 COCOAPODS: 1.9.3
