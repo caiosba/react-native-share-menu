@@ -88,6 +88,7 @@ If you're planning to run builds outside the simulator, or to make Release build
 
 ```shell
 export NODE_BINARY=node
+export ENTRY_FILE=index.share.js
 ../node_modules/react-native/scripts/react-native-xcode.sh
 ```
 
@@ -99,9 +100,11 @@ You should end up with something like this:
 
 ## Register Component
 
-Finally, in your `index.js` file, register the component you want to render in your Share Extension view:
+Finally, create an `index.share.js` file, register the component you want to render in your Share Extension view:
 
 ```javascript
+import { AppRegistry } from "react-native";
+
 AppRegistry.registerComponent(
   "ShareMenuModuleComponent",
   () => MyShareComponent

@@ -13,7 +13,7 @@ class ReactShareViewController: ShareViewController, RCTBridgeDelegate, ReactSha
   func sourceURL(for bridge: RCTBridge!) -> URL! {
 #if DEBUG
     return RCTBundleURLProvider.sharedSettings()?
-      .jsBundleURL(forBundleRoot: "index", fallbackResource: nil)
+      .jsBundleURL(forBundleRoot: "index.share", fallbackResource: nil)
 #else
     return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif
