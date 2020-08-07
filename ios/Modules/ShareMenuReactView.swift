@@ -10,22 +10,22 @@ import MobileCoreServices
 @objc(ShareMenuReactView)
 public class ShareMenuReactView: NSObject {
     static var viewDelegate: ReactShareViewDelegate?
-    
+
     @objc
     static public func requiresMainQueueSetup() -> Bool {
         return false
     }
-    
+
     public static func attachViewDelegate(_ delegate: ReactShareViewDelegate!) {
         guard (ShareMenuReactView.viewDelegate == nil) else { return }
-        
+
         ShareMenuReactView.viewDelegate = delegate
     }
-    
+
     public static func detachViewDelegate() {
         ShareMenuReactView.viewDelegate = nil
     }
-    
+
     @objc(dismissExtension:)
     func dismissExtension(_ error: String?) {
         guard let extensionContext = ShareMenuReactView.viewDelegate?.loadExtensionContext() else {
@@ -72,7 +72,7 @@ public class ShareMenuReactView: NSObject {
 
         viewDelegate.continueInApp(with: item, and: extraData)
     }
-    
+
     @objc(data:reject:)
     func data(_
             resolve: @escaping RCTPromiseResolveBlock,
@@ -87,11 +87,11 @@ public class ShareMenuReactView: NSObject {
                 reject("error", error?.description, nil)
                 return
             }
-            
+
             resolve([MIME_TYPE_KEY: mimeType, DATA_KEY: data])
         }
     }
-    
+
     func extractDataFromContext(context: NSExtensionContext, withCallback callback: @escaping (String?, String?, NSException?) -> Void) {
         let item:NSExtensionItem! = context.inputItems.first as? NSExtensionItem
         let attachments:[AnyObject]! = item.attachments
@@ -99,6 +99,7 @@ public class ShareMenuReactView: NSObject {
         var urlProvider:NSItemProvider! = nil
         var imageProvider:NSItemProvider! = nil
         var textProvider:NSItemProvider! = nil
+        var dataProvider:NSItemProvider! = nil
 
         for provider in attachments {
             if provider.hasItemConformingToTypeIdentifier(kUTTypeURL as String) {
@@ -109,6 +110,9 @@ public class ShareMenuReactView: NSObject {
                 break
             } else if provider.hasItemConformingToTypeIdentifier(kUTTypeImage as String) {
                 imageProvider = provider as? NSItemProvider
+                break
+            } else if provider.hasItemConformingToTypeIdentifier(kUTTypeData as String) {
+                dataProvider = provider as? NSItemProvider
                 break
             }
         }
@@ -131,11 +135,17 @@ public class ShareMenuReactView: NSObject {
 
                 callback(text, "text/plain", nil)
             }
+        }  else if (dataProvider != nil) {
+            dataProvider.loadItem(forTypeIdentifier: kUTTypeData as String, options: nil) { (item, error) in
+                let url: URL! = item as? String
+
+                callback(url.absoluteString, self.extractMimeType(from: url), nil)
+            }
         } else {
             callback(nil, nil, NSException(name: NSExceptionName(rawValue: "Error"), reason:"couldn't find provider", userInfo:nil))
         }
     }
-    
+
     func extractMimeType(from url: URL) -> String {
       let fileExtension: CFString = url.pathExtension as CFString
       guard let extUTI = UTTypeCreatePreferredIdentifierForTag(
