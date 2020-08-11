@@ -137,7 +137,7 @@ public class ShareMenuReactView: NSObject {
             }
         }  else if (dataProvider != nil) {
             dataProvider.loadItem(forTypeIdentifier: kUTTypeData as String, options: nil) { (item, error) in
-                let url: URL! = item as? String
+                let url: URL! = item as? URL
 
                 callback(url.absoluteString, self.extractMimeType(from: url), nil)
             }
