@@ -126,7 +126,36 @@ public class ShareMenuReactView: NSObject {
         } else if (imageProvider != nil) {
             imageProvider.loadItem(forTypeIdentifier: kUTTypeImage as String, options: nil) { (item, error) in
                 let url: URL! = item as? URL
-
+                if url == nil {
+                    guard let image = item as? UIImage else {
+                        callback("Unable to load image", "text/plain", nil)
+                          return
+                    }
+                    let imageData = image.pngData()
+                    let fileExtension = "png"
+                    let fileName = UUID().uuidString
+                    guard  let hostAppId = Bundle.main.object(forInfoDictionaryKey: HOST_APP_IDENTIFIER_INFO_PLIST_KEY) as? String else {
+                        callback("Unable to load image", "text/plain", nil)
+                          return
+                    }
+                    guard let groupFileManagerContainer = FileManager.default
+                                  .containerURL(forSecurityApplicationGroupIdentifier: "group.\(hostAppId)") else {
+                        callback("Unable to load image", "text/plain", nil)
+                          return
+                    }
+                    let filePath = groupFileManagerContainer
+                      .appendingPathComponent("\(fileName).\(fileExtension)")
+                    do {
+                      try imageData?.write(to: filePath)
+                    }
+                    catch (let error) {
+                      print("Could not save image to \(filePath): \(error)")
+                      callback("Unable to load image", "text/plain", nil)
+                        return
+                    }
+                    callback(filePath.absoluteString, "image/png", nil)
+                    return
+                }
                 callback(url.absoluteString, self.extractMimeType(from: url), nil)
             }
         } else if (textProvider != nil) {
