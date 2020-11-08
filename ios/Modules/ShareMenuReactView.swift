@@ -82,96 +82,76 @@ public class ShareMenuReactView: NSObject {
             return
         }
 
-        extractDataFromContext(context: extensionContext) { (data, mimeType, error) in
+        extractDataFromContext(context: extensionContext) { (items, error) in
             guard (error == nil) else {
                 reject("error", error?.description, nil)
                 return
             }
-
-            resolve([MIME_TYPE_KEY: mimeType, DATA_KEY: data])
+            resolve(items)
         }
     }
 
-    func extractDataFromContext(context: NSExtensionContext, withCallback callback: @escaping (String?, String?, NSException?) -> Void) {
+    func extractDataFromContext(context: NSExtensionContext, withCallback callback: @escaping ([[String: String]], NSException?) -> Void) {
         let item:NSExtensionItem! = context.inputItems.first as? NSExtensionItem
         let attachments:[AnyObject]! = item.attachments
-
-        var urlProvider:NSItemProvider! = nil
-        var imageProvider:NSItemProvider! = nil
-        var textProvider:NSItemProvider! = nil
-        var dataProvider:NSItemProvider! = nil
-
+        var readCount = 0
+        var type:String = ""
+        var items = [[String: String]]()
         for provider in attachments {
             if provider.hasItemConformingToTypeIdentifier(kUTTypeURL as String) {
-                urlProvider = provider as? NSItemProvider
-                break
+                type = kUTTypeURL as String
             } else if provider.hasItemConformingToTypeIdentifier(kUTTypeText as String) {
-                textProvider = provider as? NSItemProvider
-                break
+                type = kUTTypeText as String
             } else if provider.hasItemConformingToTypeIdentifier(kUTTypeImage as String) {
-                imageProvider = provider as? NSItemProvider
-                break
+                type = kUTTypeImage as String
             } else if provider.hasItemConformingToTypeIdentifier(kUTTypeData as String) {
-                dataProvider = provider as? NSItemProvider
-                break
+                type = kUTTypeData as String
+            } else if provider.hasItemConformingToTypeIdentifier(kUTTypeVideo as String) {
+                type = kUTTypeVideo as String
             }
-        }
-
-        if (urlProvider != nil) {
-            urlProvider.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { (item, error) in
-                let url: URL! = item as? URL
-
-                callback(url.absoluteString, "text/plain", nil)
-            }
-        } else if (imageProvider != nil) {
-            imageProvider.loadItem(forTypeIdentifier: kUTTypeImage as String, options: nil) { (item, error) in
-                let url: URL! = item as? URL
-                if url == nil {
-                    guard let image = item as? UIImage else {
-                        callback("Unable to load image", "text/plain", nil)
-                          return
+            provider.loadItem(forTypeIdentifier: type , options: nil) { (item, error) in
+                readCount = readCount + 1
+                var mimeType:String? = nil
+                var content:String? = nil
+                if error != nil {
+                    if readCount == attachments.count {
+                        callback(items,nil)
                     }
+                    return
+                }
+                if let url = item as? URL {
+                    content = url.absoluteString
+                    mimeType = self.extractMimeType(from: url)
+                } else if let text = item as? String {
+                    content = text
+                    mimeType = "text/plain"
+                } else if let image = item as? UIImage {
                     let imageData = image.pngData()
                     let fileExtension = "png"
                     let fileName = UUID().uuidString
-                    guard  let hostAppId = Bundle.main.object(forInfoDictionaryKey: HOST_APP_IDENTIFIER_INFO_PLIST_KEY) as? String else {
-                        callback("Unable to load image", "text/plain", nil)
-                          return
+                    if let hostAppId = Bundle.main.object(forInfoDictionaryKey: HOST_APP_IDENTIFIER_INFO_PLIST_KEY) as? String {
+                        if let groupFileManagerContainer = FileManager.default
+                                                      .containerURL(forSecurityApplicationGroupIdentifier: "group.\(hostAppId)") {
+                            let filePath = groupFileManagerContainer
+                                                  .appendingPathComponent("\(fileName).\(fileExtension)")
+                            do {
+                                try imageData?.write(to: filePath)
+                                content = filePath.absoluteString
+                                mimeType = "image/png"
+                            }
+                            catch (let error) {
+                                print("Could not save image to \(filePath): \(error)")
+                            }
+                        }
                     }
-                    guard let groupFileManagerContainer = FileManager.default
-                                  .containerURL(forSecurityApplicationGroupIdentifier: "group.\(hostAppId)") else {
-                        callback("Unable to load image", "text/plain", nil)
-                          return
-                    }
-                    let filePath = groupFileManagerContainer
-                      .appendingPathComponent("\(fileName).\(fileExtension)")
-                    do {
-                      try imageData?.write(to: filePath)
-                    }
-                    catch (let error) {
-                      print("Could not save image to \(filePath): \(error)")
-                      callback("Unable to load image", "text/plain", nil)
-                        return
-                    }
-                    callback(filePath.absoluteString, "image/png", nil)
-                    return
                 }
-                callback(url.absoluteString, self.extractMimeType(from: url), nil)
+                if content != nil {
+                    items.append(["data":content!, "mimeType":mimeType!])
+                }
+                if readCount == attachments.count {
+                    callback(items,nil)
+                }
             }
-        } else if (textProvider != nil) {
-            textProvider.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { (item, error) in
-                let text:String! = item as? String
-
-                callback(text, "text/plain", nil)
-            }
-        }  else if (dataProvider != nil) {
-            dataProvider.loadItem(forTypeIdentifier: kUTTypeData as String, options: nil) { (item, error) in
-                let url: URL! = item as? URL
-
-                callback(url.absoluteString, self.extractMimeType(from: url), nil)
-            }
-        } else {
-            callback(nil, nil, NSException(name: NSExceptionName(rawValue: "Error"), reason:"couldn't find provider", userInfo:nil))
         }
     }
 

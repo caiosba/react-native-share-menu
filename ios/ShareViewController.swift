@@ -15,7 +15,8 @@ import RNShareMenu
 class ShareViewController: SLComposeServiceViewController {
   var hostAppId: String?
   var hostAppUrlScheme: String?
-  
+  var items:[[String:String]]?
+  var itemCount:Int = 0
   override func viewDidLoad() {
     super.viewDidLoad()
     
@@ -53,23 +54,32 @@ class ShareViewController: SLComposeServiceViewController {
     }
 
   func handlePost(_ item: NSExtensionItem, extraData: [String:Any]? = nil) {
-    guard let provider = item.attachments?.first else {
+    guard (item.attachments?.first) != nil else {
       cancelRequest()
       return
     }
-
+    self.items = [[String: String]]()
+    self.itemCount = item.attachments?.count ?? 0
     if let data = extraData {
       storeExtraData(data)
     } else {
       removeExtraData()
     }
-
-    if provider.isText {
-      storeText(withProvider: provider)
-    } else if provider.isURL {
-      storeUrl(withProvider: provider)
-    } else {
-      storeFile(withProvider: provider)
+    let attachments:[NSItemProvider]! = item.attachments
+    for provider in attachments {
+      if provider.isText {
+        storeText(withProvider: provider)
+      } else if provider.isURL {
+        storeUrl(withProvider: provider)
+      } else {
+        if provider.hasItemConformingToTypeIdentifier("public.image") {
+          self.storeImage(withProvider: provider)
+        } else if provider.hasItemConformingToTypeIdentifier("public.movie") {
+          self.storeVideo(withProvider: provider)
+        } else {
+          storeFile(withProvider: provider)
+        }
+      }
     }
   }
 
@@ -101,6 +111,7 @@ class ShareViewController: SLComposeServiceViewController {
   
   func storeText(withProvider provider: NSItemProvider) {
     provider.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { (data, error) in
+      self.itemCount = self.itemCount - 1
       guard (error == nil) else {
         self.exit(withError: error.debugDescription)
         return
@@ -109,25 +120,68 @@ class ShareViewController: SLComposeServiceViewController {
         self.exit(withError: COULD_NOT_FIND_STRING_ERROR)
         return
       }
+      self.items!.append([DATA_KEY: text, MIME_TYPE_KEY: "text/plain"])
+      self.openAppIfDone()
+    }
+  }
+  func storeImage(withProvider provider:NSItemProvider) {
+    provider.loadItem(forTypeIdentifier: kUTTypeImage as String, options: nil) { (data, error) in
+      self.itemCount = self.itemCount - 1
+      guard (error == nil) else {
+        self.exit(withError: error.debugDescription)
+        return
+      }
+      if let url = data as? URL {
+        self.items!.append([DATA_KEY: url.absoluteString, MIME_TYPE_KEY: url.extractMimeType()])
+        self.openAppIfDone()
+        return
+      }
+      guard let image = data as? UIImage else {
+        self.exit(withError: COULD_NOT_FIND_URL_ERROR)
+        return
+      }
       guard let hostAppId = self.hostAppId else {
         self.exit(withError: NO_INFO_PLIST_INDENTIFIER_ERROR)
         return
       }
-      guard let userDefaults = UserDefaults(suiteName: "group.\(hostAppId)") else {
-        self.exit(withError: NO_APP_GROUP_ERROR)
+      guard let groupFileManagerContainer = FileManager.default
+              .containerURL(forSecurityApplicationGroupIdentifier: "group.\(hostAppId)") else {
+        self.openAppIfDone()
         return
       }
-      
-      userDefaults.set([DATA_KEY: text, MIME_TYPE_KEY: "text/plain"],
-                       forKey: USER_DEFAULTS_KEY)
-      userDefaults.synchronize()
-      
-      self.openHostApp()
+      let imageData = image.pngData()
+      let fileExtension = "png"
+      let fileName = UUID().uuidString
+      let filePath = groupFileManagerContainer
+        .appendingPathComponent("\(fileName).\(fileExtension)")
+      do {
+        try imageData?.write(to: filePath)
+      }
+      catch (let error) {
+        print("Could not save image to \(filePath): \(error)")
+        self.openAppIfDone()
+        return
+      }
+      self.items!.append([DATA_KEY: filePath.absoluteString, MIME_TYPE_KEY: "image/png"])
+      self.openAppIfDone()
     }
   }
-  
+  func storeVideo(withProvider provider:NSItemProvider) {
+    provider.loadItem(forTypeIdentifier: kUTTypeMovie as String, options: nil) { (data, error) in
+      self.itemCount = self.itemCount - 1
+      guard (error == nil) else {
+        self.exit(withError: error.debugDescription)
+        return
+      }
+      if let url = data as? URL {
+        self.items!.append([DATA_KEY: url.absoluteString, MIME_TYPE_KEY: url.extractMimeType()])
+        self.openAppIfDone()
+      }
+    }
+  }
   func storeUrl(withProvider provider: NSItemProvider) {
     provider.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { (data, error) in
+      self.itemCount = self.itemCount - 1
       guard (error == nil) else {
         self.exit(withError: error.debugDescription)
         return
@@ -136,25 +190,14 @@ class ShareViewController: SLComposeServiceViewController {
         self.exit(withError: COULD_NOT_FIND_URL_ERROR)
         return
       }
-      guard let hostAppId = self.hostAppId else {
-        self.exit(withError: NO_INFO_PLIST_INDENTIFIER_ERROR)
-        return
-      }
-      guard let userDefaults = UserDefaults(suiteName: "group.\(hostAppId)") else {
-        self.exit(withError: NO_APP_GROUP_ERROR)
-        return
-      }
-      
-      userDefaults.set([DATA_KEY: url.absoluteString, MIME_TYPE_KEY: "text/plain"],
-                       forKey: USER_DEFAULTS_KEY)
-      userDefaults.synchronize()
-      
-      self.openHostApp()
+      self.items!.append([DATA_KEY: url.absoluteString, MIME_TYPE_KEY: url.extractMimeType()])
+      self.openAppIfDone()
     }
   }
   
   func storeFile(withProvider provider: NSItemProvider) {
     provider.loadItem(forTypeIdentifier: kUTTypeData as String, options: nil) { (data, error) in
+      self.itemCount = self.itemCount - 1
       guard (error == nil) else {
         self.exit(withError: error.debugDescription)
         return
@@ -165,10 +208,6 @@ class ShareViewController: SLComposeServiceViewController {
       }
       guard let hostAppId = self.hostAppId else {
         self.exit(withError: NO_INFO_PLIST_INDENTIFIER_ERROR)
-        return
-      }
-      guard let userDefaults = UserDefaults(suiteName: "group.\(hostAppId)") else {
-        self.exit(withError: NO_APP_GROUP_ERROR)
         return
       }
       guard let groupFileManagerContainer = FileManager.default
@@ -188,12 +227,8 @@ class ShareViewController: SLComposeServiceViewController {
         self.exit(withError: COULD_NOT_SAVE_FILE_ERROR)
         return
       }
-      
-      userDefaults.set([DATA_KEY: filePath.absoluteString,  MIME_TYPE_KEY: mimeType],
-                       forKey: USER_DEFAULTS_KEY)
-      userDefaults.synchronize()
-      
-      self.openHostApp()
+      self.items!.append([DATA_KEY: filePath.absoluteString, MIME_TYPE_KEY: mimeType])
+      self.openAppIfDone()
     }
   }
 
@@ -215,7 +250,22 @@ class ShareViewController: SLComposeServiceViewController {
     print("Error: \(error)")
     cancelRequest()
   }
-  
+  func openAppIfDone() {
+    if itemCount <= 0 {
+      guard let hostAppId = self.hostAppId else {
+        self.exit(withError: NO_INFO_PLIST_INDENTIFIER_ERROR)
+        return
+      }
+      guard let userDefaults = UserDefaults(suiteName: "group.\(hostAppId)") else {
+        self.exit(withError: NO_APP_GROUP_ERROR)
+        return
+      }
+      userDefaults.set(items,
+                       forKey: USER_DEFAULTS_KEY)
+      userDefaults.synchronize()
+      self.openHostApp()
+    }
+  }
   internal func openHostApp() {
     guard let urlScheme = self.hostAppUrlScheme else {
       exit(withError: NO_INFO_PLIST_URL_SCHEME_ERROR)
