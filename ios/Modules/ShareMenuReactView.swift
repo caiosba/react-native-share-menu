@@ -125,9 +125,33 @@ public class ShareMenuReactView: NSObject {
             }
         } else if (imageProvider != nil) {
             imageProvider.loadItem(forTypeIdentifier: kUTTypeImage as String, options: nil) { (item, error) in
-                let url: URL! = item as? URL
+                let imageUrl: URL! = item as? URL
 
-                callback(url.absoluteString, self.extractMimeType(from: url), nil)
+                if (imageUrl != nil) {
+                    if let imageData = try? Data(contentsOf: imageUrl) {
+                        callback(imageUrl.absoluteString, self.extractMimeType(from: imageUrl), nil)
+                    }
+                } else {
+                    let image: UIImage! = item as? UIImage
+
+                    if (image != nil) {
+                        let imageData: Data! = image.pngData();
+
+                        // Creating temporary URL for image data (UIImage)
+                        guard let imageURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TemporaryScreenshot.png") else {
+                            return
+                        }
+
+                        do {
+                            // Writing the image to the URL
+                            try imageData.write(to: imageURL)
+
+                            callback(imageURL.absoluteString, imageURL.extractMimeType(), nil)
+                        } catch {
+                            callback(nil, nil, NSException(name: NSExceptionName(rawValue: "Error"), reason:"Can't load image", userInfo:nil))
+                        }
+                    }
+                }
             }
         } else if (textProvider != nil) {
             textProvider.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { (item, error) in
