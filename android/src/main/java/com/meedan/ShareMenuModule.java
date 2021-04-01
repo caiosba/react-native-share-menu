@@ -29,6 +29,7 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
   // Keys
   final String MIME_TYPE_KEY = "mimeType";
   final String DATA_KEY = "data";
+  final String EXTRA_DATA_KEY = "extraData";
 
   private ReactContext mReactContext;
 
@@ -61,6 +62,14 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
     if (Intent.ACTION_SEND.equals(action)) {
       if ("text/plain".equals(type)) {
         data.putString(DATA_KEY, intent.getStringExtra(Intent.EXTRA_TEXT));
+        Bundle bundle = intent.getExtras();
+        if (bundle != null) {
+          WritableMap record = new WritableNativeMap();
+          for (String key : bundle.keySet()) {
+            record.putString(key, bundle.get(key).toString());
+          }
+          data.putString(EXTRA_DATA_KEY, record);
+        }
         return data;
       }
 
