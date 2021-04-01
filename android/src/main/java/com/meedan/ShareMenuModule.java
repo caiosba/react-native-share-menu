@@ -23,6 +23,8 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
+import com.iodine.start.MapUtil;
+
 public class ShareMenuModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
   // Events
@@ -70,7 +72,7 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
           for (String key : bundle.keySet()) {
             record.putString(key, bundle.get(key).toString());
           }
-          data.putString(EXTRA_DATA_KEY, record);
+          data.putString(EXTRA_DATA_KEY, MapUtil.toJsonObject(record));
         }
         return data;
       }
