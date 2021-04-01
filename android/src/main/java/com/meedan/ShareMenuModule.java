@@ -22,8 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-
-import com.iodine.start.MapUtil;
+import org.json.JSONObject;
 
 public class ShareMenuModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -72,7 +71,12 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
           for (String key : bundle.keySet()) {
             record.putString(key, bundle.get(key).toString());
           }
-          data.putString(EXTRA_DATA_KEY, MapUtil.toJsonObject(record));
+          try {
+            JSONObject jsonRecord = MapUtil.toJSONObject(record);
+            data.putString(EXTRA_DATA_KEY, jsonRecord.toString());
+          } catch(Exception e) {
+            data.putString(EXTRA_DATA_KEY, null);
+          }
         }
         return data;
       }
