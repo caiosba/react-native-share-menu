@@ -32,7 +32,7 @@ public class ShareMenuReactView: NSObject {
             print("Error: \(NO_EXTENSION_CONTEXT_ERROR)")
             return
         }
-
+      
         if error != nil {
             let exception = NSError(
                 domain: Bundle.main.bundleIdentifier!,
@@ -52,7 +52,7 @@ public class ShareMenuReactView: NSObject {
             print("Error: \(NO_DELEGATE_ERROR)")
             return
         }
-
+      
         viewDelegate.openApp()
     }
 
@@ -82,67 +82,105 @@ public class ShareMenuReactView: NSObject {
             return
         }
 
-        extractDataFromContext(context: extensionContext) { (data, mimeType, error) in
+        extractDataFromContext(context: extensionContext) { (datas, error) in
             guard (error == nil) else {
                 reject("error", error?.description, nil)
                 return
             }
 
-            resolve([MIME_TYPE_KEY: mimeType, DATA_KEY: data])
+            resolve(datas)
         }
     }
 
-    func extractDataFromContext(context: NSExtensionContext, withCallback callback: @escaping (String?, String?, NSException?) -> Void) {
+    func extractDataFromContext(context: NSExtensionContext, withCallback callback: @escaping ([[String: String]]?, NSException?) -> Void) {
         let item:NSExtensionItem! = context.inputItems.first as? NSExtensionItem
         let attachments:[AnyObject]! = item.attachments
-
-        var urlProvider:NSItemProvider! = nil
-        var imageProvider:NSItemProvider! = nil
-        var textProvider:NSItemProvider! = nil
-        var dataProvider:NSItemProvider! = nil
+        var datas: [[String: String]] = []
+        let group = DispatchGroup()
 
         for provider in attachments {
+            var urlProvider:NSItemProvider! = nil
+            var imageProvider:NSItemProvider! = nil
+            var textProvider:NSItemProvider! = nil
+            var dataProvider:NSItemProvider! = nil
+            var data = [String: String]()
+          
             if provider.hasItemConformingToTypeIdentifier(kUTTypeURL as String) {
                 urlProvider = provider as? NSItemProvider
-                break
             } else if provider.hasItemConformingToTypeIdentifier(kUTTypeText as String) {
                 textProvider = provider as? NSItemProvider
-                break
             } else if provider.hasItemConformingToTypeIdentifier(kUTTypeImage as String) {
                 imageProvider = provider as? NSItemProvider
-                break
             } else if provider.hasItemConformingToTypeIdentifier(kUTTypeData as String) {
                 dataProvider = provider as? NSItemProvider
-                break
             }
-        }
-
-        if (urlProvider != nil) {
-            urlProvider.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { (item, error) in
+          
+            if (urlProvider != nil) {
+              group.enter()
+              urlProvider.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { (item, error) in
                 let url: URL! = item as? URL
-
-                callback(url.absoluteString, "text/plain", nil)
-            }
-        } else if (imageProvider != nil) {
-            imageProvider.loadItem(forTypeIdentifier: kUTTypeImage as String, options: nil) { (item, error) in
+                data = [DATA_KEY: url.absoluteString, MIME_TYPE_KEY: "text/plain"]
+                group.leave()
+              }
+            } else if (imageProvider != nil) {
+              group.enter()
+              imageProvider.loadItem(forTypeIdentifier: kUTTypeImage as String, options: nil) { (item, error) in
                 let url: URL! = item as? URL
+                if (url != nil) {
+                  data = [DATA_KEY: url.absoluteString, MIME_TYPE_KEY: self.extractMimeType(from: url)]
+                  group.leave()
+                } else {
+                  let image: UIImage! = item as? UIImage
 
-                callback(url.absoluteString, self.extractMimeType(from: url), nil)
-            }
-        } else if (textProvider != nil) {
-            textProvider.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { (item, error) in
+                  if (image != nil) {
+                    let imageData: Data! = image.pngData();
+
+                    // Creating temporary URL for image data (UIImage)
+                    guard let imageURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("tempscreenshot.png") else {
+                      return
+                    }
+
+                    do {
+                      // Writing the image to the URL
+                      try imageData.write(to: imageURL)
+                      data = [DATA_KEY: imageURL.absoluteString, MIME_TYPE_KEY: imageURL.extractMimeType()]
+                      group.leave()
+                    } catch {
+                      callback(nil, NSException(name: NSExceptionName(rawValue: "Error"), reason:"Can't load image", userInfo:nil))
+                    }
+                  } else {
+                    callback(nil, NSException(name: NSExceptionName(rawValue: "Error"), reason:"Can't load image", userInfo:nil))
+                  }
+                }
+              }
+            } else if (textProvider != nil) {
+              group.enter()
+              textProvider.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { (item, error) in
                 let text:String! = item as? String
-
-                callback(text, "text/plain", nil)
-            }
-        }  else if (dataProvider != nil) {
-            dataProvider.loadItem(forTypeIdentifier: kUTTypeData as String, options: nil) { (item, error) in
+                data = [DATA_KEY: text, MIME_TYPE_KEY: "text/plain"]
+                group.leave()
+              }
+            }  else if (dataProvider != nil) {
+              group.enter()
+              dataProvider.loadItem(forTypeIdentifier: kUTTypeData as String, options: nil) { (item, error) in
                 let url: URL! = item as? URL
-
-                callback(url.absoluteString, self.extractMimeType(from: url), nil)
+                data = [DATA_KEY: url.absoluteString, MIME_TYPE_KEY: self.extractMimeType(from: url)]
+                group.leave()
+              }
+            } else {
+              callback(nil, NSException(name: NSExceptionName(rawValue: "Error"), reason:"couldn't find provider", userInfo:nil))
             }
-        } else {
-            callback(nil, nil, NSException(name: NSExceptionName(rawValue: "Error"), reason:"couldn't find provider", userInfo:nil))
+
+            group.wait()
+            datas.append(data)
+        }
+      
+        group.notify(queue: .main) {
+          if (datas.count > 0) {
+            callback(datas, nil)
+          } else {
+            callback(nil, NSException(name: NSExceptionName(rawValue: "Error"), reason:"couldn't find provider", userInfo:nil))
+          }
         }
     }
 
