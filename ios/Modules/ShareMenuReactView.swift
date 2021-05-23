@@ -1,9 +1,3 @@
-//
-//  ShareMenuReactView.swift
-//  RNShareMenu
-//
-//  Created by Gustavo Parreira on 28/07/2020.
-//
 
 import MobileCoreServices
 
@@ -39,11 +33,14 @@ public class ShareMenuReactView: NSObject {
                 code: DISMISS_SHARE_EXTENSION_WITH_ERROR_CODE,
                 userInfo: ["error": error!]
             )
+            
             extensionContext.cancelRequest(withError: exception)
+            ShareMenuReactView.viewDelegate = nil
             return
         }
 
         extensionContext.completeRequest(returningItems: [], completionHandler: nil)
+        ShareMenuReactView.viewDelegate = nil
     }
 
     @objc
@@ -82,67 +79,103 @@ public class ShareMenuReactView: NSObject {
             return
         }
 
-        extractDataFromContext(context: extensionContext) { (data, mimeType, error) in
+        extractDataFromContext(context: extensionContext) { (items, error) in
             guard (error == nil) else {
                 reject("error", error?.description, nil)
                 return
             }
-
-            resolve([MIME_TYPE_KEY: mimeType, DATA_KEY: data])
+            resolve(items)
         }
     }
 
-    func extractDataFromContext(context: NSExtensionContext, withCallback callback: @escaping (String?, String?, NSException?) -> Void) {
+    func saveAndOpen(url:URL) -> String? {
+      guard let hostAppId = Bundle.main.object(forInfoDictionaryKey: HOST_APP_IDENTIFIER_INFO_PLIST_KEY) as? String else {
+        return url.absoluteString
+      }
+      guard let groupFileManagerContainer = FileManager.default
+              .containerURL(forSecurityApplicationGroupIdentifier: "group.\(hostAppId)")
+      else {
+        return url.absoluteString
+      }
+      if let tmp  = NSData(contentsOf: url) {
+          let fileName = url.pathComponents.last ?? UUID().uuidString
+          let filePath = groupFileManagerContainer
+          .appendingPathComponent("\(fileName)")
+          do {
+            try tmp.write(to: filePath)
+            return filePath.absoluteString
+          }
+          catch (let error) {
+            print("Could not save image to \(filePath): \(error)")
+          }
+        }
+        return url.absoluteString
+    }
+    
+    func extractDataFromContext(context: NSExtensionContext, withCallback callback: @escaping ([[String: String]], NSException?) -> Void) {
         let item:NSExtensionItem! = context.inputItems.first as? NSExtensionItem
         let attachments:[AnyObject]! = item.attachments
-
-        var urlProvider:NSItemProvider! = nil
-        var imageProvider:NSItemProvider! = nil
-        var textProvider:NSItemProvider! = nil
-        var dataProvider:NSItemProvider! = nil
-
+        var readCount = 0
+        var type:String = ""
+        var items = [[String: String]]()
         for provider in attachments {
             if provider.hasItemConformingToTypeIdentifier(kUTTypeURL as String) {
-                urlProvider = provider as? NSItemProvider
-                break
+                type = kUTTypeURL as String
             } else if provider.hasItemConformingToTypeIdentifier(kUTTypeText as String) {
-                textProvider = provider as? NSItemProvider
-                break
+                type = kUTTypeText as String
             } else if provider.hasItemConformingToTypeIdentifier(kUTTypeImage as String) {
-                imageProvider = provider as? NSItemProvider
-                break
+                type = kUTTypeImage as String
             } else if provider.hasItemConformingToTypeIdentifier(kUTTypeData as String) {
-                dataProvider = provider as? NSItemProvider
-                break
+                type = kUTTypeData as String
+            } else if provider.hasItemConformingToTypeIdentifier(kUTTypeVideo as String) {
+                type = kUTTypeVideo as String
             }
-        }
-
-        if (urlProvider != nil) {
-            urlProvider.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { (item, error) in
-                let url: URL! = item as? URL
-
-                callback(url.absoluteString, "text/plain", nil)
+            provider.loadItem(forTypeIdentifier: type , options: nil) { (item, error) in
+                readCount = readCount + 1
+                var mimeType:String? = nil
+                var content:String? = nil
+                if error != nil {
+                    if readCount == attachments.count {
+                        callback(items,nil)
+                    }
+                    return
+                }
+                if let url = item as? URL {
+                    content = url.absoluteString
+                    mimeType = self.extractMimeType(from: url)
+                    if url.isFileURL {
+                        content = self.saveAndOpen(url:url)
+                    }
+                } else if let text = item as? String {
+                    content = text
+                    mimeType = "text/plain"
+                } else if let image = item as? UIImage {
+                    let imageData = image.pngData()
+                    let fileExtension = "png"
+                    let fileName = UUID().uuidString
+                    if let hostAppId = Bundle.main.object(forInfoDictionaryKey: HOST_APP_IDENTIFIER_INFO_PLIST_KEY) as? String {
+                        if let groupFileManagerContainer = FileManager.default
+                                                      .containerURL(forSecurityApplicationGroupIdentifier: "group.\(hostAppId)") {
+                            let filePath = groupFileManagerContainer
+                                                  .appendingPathComponent("\(fileName).\(fileExtension)")
+                            do {
+                                try imageData?.write(to: filePath)
+                                content = filePath.absoluteString
+                                mimeType = "image/png"
+                            }
+                            catch (let error) {
+                                print("Could not save image to \(filePath): \(error)")
+                            }
+                        }
+                    }
+                }
+                if content != nil {
+                    items.append(["data":content!, "mimeType":mimeType!])
+                }
+                if readCount == attachments.count {
+                    callback(items,nil)
+                }
             }
-        } else if (imageProvider != nil) {
-            imageProvider.loadItem(forTypeIdentifier: kUTTypeImage as String, options: nil) { (item, error) in
-                let url: URL! = item as? URL
-
-                callback(url.absoluteString, self.extractMimeType(from: url), nil)
-            }
-        } else if (textProvider != nil) {
-            textProvider.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { (item, error) in
-                let text:String! = item as? String
-
-                callback(text, "text/plain", nil)
-            }
-        }  else if (dataProvider != nil) {
-            dataProvider.loadItem(forTypeIdentifier: kUTTypeData as String, options: nil) { (item, error) in
-                let url: URL! = item as? URL
-
-                callback(url.absoluteString, self.extractMimeType(from: url), nil)
-            }
-        } else {
-            callback(nil, nil, NSException(name: NSExceptionName(rawValue: "Error"), reason:"couldn't find provider", userInfo:nil))
         }
     }
 
