@@ -7,8 +7,4 @@
 
 public protocol ReactShareViewDelegate {
     func loadExtensionContext() -> NSExtensionContext
-
-    func openApp()
-
-    func continueInApp(with item: NSExtensionItem, and extraData: [String:Any]?)
 }
